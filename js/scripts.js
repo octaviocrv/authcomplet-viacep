@@ -5,77 +5,26 @@ const cityInput = document.querySelector("#city");
 const neighborhoodInput = document.querySelector("#neighborhood");
 const regionInput = document.querySelector("#region");
 const formInputs = document.querySelectorAll("[data-input]");
+const fadeElement = document.querySelector("#fade");
 
 const closeButton = document.querySelector("#close-message");
 
-// Validate CEP Input
-cepInput.addEventListener("keypress", (e) => {
-  const onlyNumbers = /[0-9]|\./;
-  const key = String.fromCharCode(e.keyCode);
-
-  console.log(key);
-
-  console.log(onlyNumbers.test(key));
-
-  // allow only numbers
-  if (!onlyNumbers.test(key)) {
-    e.preventDefault();
-    return;
-  }
-});
-
-// Evento to get address
-cepInput.addEventListener("keyup", (e) => {
+// Validação da entrada do input
+cepInput.addEventListener("input", (e) => {
+  const onlyNumbers = /^[0-9]*$/; // regex ajustada para aceitar apenas números
   const inputValue = e.target.value;
 
-  //   Check if we have a CEP
+  // Impede caracteres não numéricos
+  if (!onlyNumbers.test(inputValue)) {
+    e.target.value = inputValue.replace(/\D/g, ""); // Remove caracteres não numéricos
+  }
+
+  // Verifica o comprimento do CEP (8 dígitos)
   if (inputValue.length === 8) {
-    getAddress(inputValue);
+    getAdress(inputValue);
   }
 });
 
-// Get address from API
-const getAddress = async (cep) => {
-  toggleLoader();
-
-  cepInput.blur();
-
-  const apiUrl = `https://viacep.com.br/ws/${cep}/json/`;
-
-  const response = await fetch(apiUrl);
-
-  const data = await response.json();
-
-  console.log(data);
-  console.log(formInputs);
-  console.log(data.erro);
-
-  // Show error and reset form
-  if (data.erro === "true") {
-    if (!addressInput.hasAttribute("disabled")) {
-      toggleDisabled();
-    }
-
-    addressForm.reset();
-    toggleLoader();
-    toggleMessage("CEP Inválido, tente novamente.");
-    return;
-  }
-
-  // Activate disabled attribute if form is empty
-  if (addressInput.value === "") {
-    toggleDisabled();
-  }
-
-  addressInput.value = data.logradouro;
-  cityInput.value = data.localidade;
-  neighborhoodInput.value = data.bairro;
-  regionInput.value = data.uf;
-
-  toggleLoader();
-};
-
-// Add or remove disable attribute
 const toggleDisabled = () => {
   if (regionInput.hasAttribute("disabled")) {
     formInputs.forEach((input) => {
@@ -88,44 +37,83 @@ const toggleDisabled = () => {
   }
 };
 
-// Show or hide loader
+const getAdress = async (cep) => {
+  toggleLoader();
+  cepInput.blur();
+
+  const apiUrl = `https://viacep.com.br/ws/${cep}/json/`;
+
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+
+  if (data.erro) {
+    if (!addressInput.hasAttribute("disabled")) {
+      toggleDisabled();
+    }
+
+    // data.erro viacep retorna como um booleano já
+    addressForm.reset(); // Reseta o formulário nativo
+    toggleLoader();
+    toggleMessage("CEP Inválido, tente novamente!");
+    return;
+  }
+
+  if (addressInput.value === "") {
+    toggleDisabled();
+  }
+
+  // Atualiza os valores nos inputs
+  addressInput.value = data.logradouro;
+  cityInput.value = data.localidade;
+  neighborhoodInput.value = data.bairro;
+  regionInput.value = data.uf;
+
+  // Remove o atributo 'disabled' dos campos preenchidos
+  formInputs.forEach((input) => {
+    input.removeAttribute("disabled");
+  });
+
+  toggleLoader();
+};
+
+// Mostrar a animação de loading
 const toggleLoader = () => {
-  const fadeElement = document.querySelector("#fade");
   const loaderElement = document.querySelector("#loader");
 
   fadeElement.classList.toggle("hide");
   loaderElement.classList.toggle("hide");
 };
 
-// Show or hide message
-const toggleMessage = (msg) => {
-  const fadeElement = document.querySelector("#fade");
+// Mostrar mensagem de erro
+const toggleMessage = (msg = "") => {
   const messageElement = document.querySelector("#message");
+  const messageElementText = document.querySelector("#message p");
 
-  const messageTextElement = document.querySelector("#message p");
-
-  messageTextElement.innerText = msg;
+  if (msg) {
+    messageElementText.innerText = msg;
+  }
 
   fadeElement.classList.toggle("hide");
   messageElement.classList.toggle("hide");
 };
 
-// Close message modal
+// Fechar mensagem modal
 closeButton.addEventListener("click", () => toggleMessage());
 
-// Save address
+//salvar as informações
+
 addressForm.addEventListener("submit", (e) => {
   e.preventDefault();
-
   toggleLoader();
 
   setTimeout(() => {
     toggleLoader();
 
-    toggleMessage("Endereço salvo com sucesso!");
+    toggleMessage("Endereço salvo com sucesso");
 
     addressForm.reset();
 
-    toggleDisabled();
-  }, 1000);
+    // Verifique se você realmente precisa dessa função, ou declare-a
+    toggleDisabled(); // Certifique-se de que a função 'toggleDisabled' existe
+  }, 1500);
 });

@@ -1,10 +1,10 @@
 :root {
-  --bg-color: #04044c;
+  --bg-color: #00478f;
   --secondary-bg-color: #494a7d;
   --primary-color: #fff;
-  --secondary-color: #25cc88;
-  --text-color: #8789af;
-  --border-color: #20235b;
+  --secondary-color: #6aabd2;
+  --text-color: #b1b4b6;
+  --border-color: grey;
 }
 
 #checkout-page {
@@ -131,11 +131,14 @@
 }
 
 #save-btn {
-  background-color: #25cc88;
+  background-color: #37beb0;
+  opacity: 100%;
   border: none;
   height: 3em;
   width: 8em;
   border-radius: 1.5em;
+  padding-top: 0.6875em;
+  font-size: 1.1em;
 }
 
 /* Responsive */
